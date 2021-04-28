@@ -1,44 +1,24 @@
 # MVCE to test extraction transforms for C++ projects
 
-This example became required when trying to have a CMake project depend on a
-cpp-library generated dependency. While connecting up a transform 
+This example came into existence while trying to have a CMake project depend on a cpp-library generated dependency. 
+While connecting up a transform that would auto-extract the cpp-library generated header archive for the CMake plugin
+the following error was encountered:
 
       > No matching variant of com.test:utilities:1.2.3 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-api', attribute 'artifactType' with value 'directory' but:
           - Variant 'api' capability com.test:utilities:1.2.3 declares attribute 'org.gradle.usage' with value 'cplusplus-api':
               - Incompatible because this component declares attribute 'artifactType' with value 'zip' and the consumer needed attribute 'artifactType' with value 'directory'
 
-This is while trying to register a transform almost identical to the cpp-library 
-one. I'm following what is in the docs (see thread for example syntax).
+The error doesn't make sense because a transform is registered almost identical to how the cpp-library defines it's
+transform.
 
-Docs:
+Documentation on artifact transform selection and execution outlines how to do this:
 
 * https://docs.gradle.org/current/userguide/artifact_transforms.html#artifact_transform_selection_and_execution
 
-This is an example of the Java code that should be registering the transform 
-from ZIP_TYPE to DIRECTORY_TYPE for Usage.C_PLUS_PLUS_API:
+Instead of using an actual CMake plugin as the consumer here, we're just using a very simple setup that reproduces. 
+The CMake plugin code is very similar to what exists here:
 
-    project.afterEvaluate(proj -> {
-        proj.getConfigurations().getByName("cppCompile").getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);
-    });
-    project.getDependencies().registerTransform(UnzipTransform.class, variantTransform -> {
-        variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE);
-        variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.C_PLUS_PLUS_API));
-        variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);
-        variantTransform.getTo().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.C_PLUS_PLUS_API));
-    });
-
-It was suggested to try:
-
-    project.afterEvaluate(proj -> {
-        proj.getConfigurations().getByName("cppCompile").getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);
-    });
-    project.getDependencies().registerTransform(UnzipTransform.class, variantTransform -> {
-        variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE);
-        variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);
-    });
-
-Instead of using an actual CMake plugin as the consumer here, we're just using
-a very simple setup that reproduces.
+* https://github.com/gradle/native-samples/tree/master/cpp/cmake-library/build-wrapper-plugin/src/main/java/org/gradle/samples/plugins
 
 # To test
 

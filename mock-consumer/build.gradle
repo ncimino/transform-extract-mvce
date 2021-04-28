@@ -16,10 +16,9 @@ configurations {
     }
     cppCompile {
         canBeResolved = true
-        final Usage cppApiUsage = objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, cppApiUsage)
-        extendsFrom(implementation)
-        attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE)
+        extendsFrom implementation
+        attributes.attribute Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
+        attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE)
     }
 }
 
@@ -28,10 +27,11 @@ afterEvaluate {
 }
 
 tasks.register('someAction', Copy) {
-    from(configurations.cppCompile)
-    into(buildDir)
+    from configurations.cppCompile
+    into buildDir
+    doLast { logger.lifecycle("== buildDir has (expect exploded): {}", buildDir.listFiles()) }
 }
-tasks.assemble.inputs.files(tasks.someAction.outputs.files)
+tasks.assemble.inputs.files tasks.someAction.outputs.files
 
 repositories {
     mavenLocal()
@@ -39,8 +39,10 @@ repositories {
 
 dependencies {
     registerTransform(UnzipTransform, {
-        from.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE)
-        to.attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE)
+        from.attribute ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE
+//        from.attribute Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
+        to.attribute ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE
+//        to.attribute Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
     })
     implementation "com.company:lib:1.0.0"
 }
