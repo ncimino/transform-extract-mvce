@@ -1,0 +1,19 @@
+plugins {
+    id 'cpp-library'
+    id 'cpp-unit-test'
+    id 'maven-publish'
+}
+
+version '1.0.0'
+group 'com.company'
+
+library {
+    targetMachines.add(machines.linux.x86_64)
+}
+
+//repositories {
+//    maven {
+//        name 'example'
+//        url uri("${projectDir}/repo")
+//    }
+//}

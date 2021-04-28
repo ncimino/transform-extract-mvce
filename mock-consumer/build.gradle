@@ -1,0 +1,46 @@
+plugins {
+    id 'base'
+}
+
+version '1.0.0'
+
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.artifacts.transform.UnzipTransform;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.DIRECTORY_TYPE
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ZIP_TYPE
+
+configurations {
+    implementation {
+        canBeConsumed = false
+        canBeResolved = false
+    }
+    cppCompile {
+        canBeResolved = true
+        final Usage cppApiUsage = objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, cppApiUsage)
+        extendsFrom(implementation)
+        attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE)
+    }
+}
+
+afterEvaluate {
+    configurations.getByName('cppCompile').attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE)
+}
+
+tasks.register('someAction', Copy) {
+    from(configurations.cppCompile)
+    into(buildDir)
+}
+tasks.assemble.inputs.files(tasks.someAction.outputs.files)
+
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    registerTransform(UnzipTransform, {
+        from.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE)
+        to.attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE)
+    })
+    implementation "com.company:lib:1.0.0"
+}

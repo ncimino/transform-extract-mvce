@@ -1,0 +1,3 @@
+rootProject.name = 'transform-extract-mvce'
+include('lib')
+include('mock-consumer')
