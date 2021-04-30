@@ -22,13 +22,9 @@ The CMake plugin code is very similar to what exists here:
 
 # To test
 
-Cleaning your m2 repo is a good first step:
-
-    rm -rf ~/.m2/respository/*
-
 Publish the dependency just to see it:
 
-    ./gradlew :lib:publishToMavenLocal
+    ./gradlew :lib:publishAllPublicationsToExampleRepository
 
 Module metadata shows:
 
