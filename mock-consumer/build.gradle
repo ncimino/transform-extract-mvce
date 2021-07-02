@@ -4,10 +4,8 @@ plugins {
 
 version '1.0.0'
 
-import org.gradle.api.internal.artifacts.ArtifactAttributes;
-import org.gradle.api.internal.artifacts.transform.UnzipTransform;
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.DIRECTORY_TYPE
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ZIP_TYPE
+def artifactType = Attribute.of('artifactType', String)
+def unzipped = Attribute.of('unzipped', Boolean)
 
 configurations {
     implementation {
@@ -18,12 +16,17 @@ configurations {
         canBeResolved = true
         extendsFrom implementation
         attributes.attribute Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
-        attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE)
+        attributes.attribute(unzipped, true)
     }
 }
 
-afterEvaluate {
-    configurations.getByName('cppCompile').attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE)
+dependencies {
+    attributesSchema {
+        attribute(unzipped)
+    }
+    artifactTypes.create("zip") {
+        attributes.attribute(unzipped, false)
+    }
 }
 
 tasks.register('someAction', Copy) {
@@ -34,15 +37,15 @@ tasks.register('someAction', Copy) {
 tasks.assemble.inputs.files tasks.someAction.outputs.files
 
 repositories {
-    mavenLocal()
+    maven {
+        url "../lib/build/repo"
+    }
 }
 
 dependencies {
     registerTransform(UnzipTransform, {
-        from.attribute ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE
-//        from.attribute Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
-        to.attribute ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE
-//        to.attribute Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
+        from.attribute(unzipped, false).attribute(artifactType, "zip")
+        to.attribute(unzipped, true).attribute(artifactType, "zip")
     })
     implementation "com.company:lib:1.0.0"
 }

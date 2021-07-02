@@ -11,9 +11,11 @@ library {
     targetMachines.add(machines.linux.x86_64)
 }
 
-//repositories {
-//    maven {
-//        name 'example'
-//        url uri("${projectDir}/repo")
-//    }
-//}
+publishing {
+    repositories {
+        maven {
+            name 'example'
+            url uri("${buildDir}/repo")
+        }
+    }
+}
